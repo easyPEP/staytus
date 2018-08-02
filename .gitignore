@@ -11,7 +11,7 @@
 /log/*
 !/log/.keep
 /tmp
-config/environment.yml
+# config/environment.yml use proper ENV variables
 config/database.yml
 config/secret_token.yml
 public/assets
