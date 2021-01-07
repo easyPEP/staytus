@@ -14,23 +14,45 @@ services:
   web:
     build: .
     environment:
-      # see: https://docs.docker.com/compose/environment-variables/
-      FORCE_SSL: ${FORCE_SSL}
-      RAILS_ENV: ${RAILS_ENV}
-      DATABASE_URL: ${DATABASE_URL}
+      FORCE_SSL: ${STAYTUS_FORCE_SSL}
+      RAILS_ENV: ${STAYTUS_RAILS_ENV}
+      DATABASE_URL: ${STAYTUS_DATABASE_URL}
       STAYTUS_SMTP_HOSTNAME: ${STAYTUS_SMTP_HOSTNAME}
       STAYTUS_SMTP_PASSWORD: ${STAYTUS_SMTP_PASSWORD}
       STAYTUS_SMTP_PORT: ${STAYTUS_SMTP_PORT}
       STAYTUS_SMTP_USERNAME: ${STAYTUS_SMTP_USERNAME}
       STAYTUS_THEME: ${STAYTUS_THEME}
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      RUN_MIGRATION: ${RUN_MIGRATION}
-      RUN_ASSET_PRECOMPILE: ${RUN_ASSET_PRECOMPILE}
+      SECRET_KEY_BASE: ${STAYTUS_SECRET_KEY_BASE}
+      RUN_MIGRATION: ${STAYTUS_RUN_MIGRATION}
+      RUN_ASSET_PRECOMPILE: ${STAYTUS_RUN_ASSET_PRECOMPILE}
     command: bash -c "bundle exec rake db:create; bundle exec rake db:migrate; bundle exec rake assets:precompile; bundle exec puma -C config/puma.rb"
     volumes:
       - .:/myapp
     ports:
       - "8787:8787"
+    depends_on:
+      - db
+  ssh:
+    build:
+      context: .
+      dockerfile: Dockerfile.ssh
+    environment:
+      FORCE_SSL: ${STAYTUS_FORCE_SSL}
+      RAILS_ENV: ${STAYTUS_RAILS_ENV}
+      DATABASE_URL: ${STAYTUS_DATABASE_URL}
+      STAYTUS_SMTP_HOSTNAME: ${STAYTUS_SMTP_HOSTNAME}
+      STAYTUS_SMTP_PASSWORD: ${STAYTUS_SMTP_PASSWORD}
+      STAYTUS_SMTP_PORT: ${STAYTUS_SMTP_PORT}
+      STAYTUS_SMTP_USERNAME: ${STAYTUS_SMTP_USERNAME}
+      STAYTUS_THEME: ${STAYTUS_THEME}
+      SECRET_KEY_BASE: ${STAYTUS_SECRET_KEY_BASE}
+      RUN_MIGRATION: ${STAYTUS_RUN_MIGRATION}
+      RUN_ASSET_PRECOMPILE: ${STAYTUS_RUN_ASSET_PRECOMPILE}
+    command: bash -c "bundle exec rake db:create; bundle exec rake db:migrate; /usr/sbin/sshd -D"
+    volumes:
+      - .:/myapp
+    ports:
+      - "2222:22"
     depends_on:
       - db
 

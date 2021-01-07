@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "health", to: -> (env) { [200, {}, ['HEALTHY']] }, via: :all
 
   namespace :admin do
     #

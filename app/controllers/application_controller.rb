@@ -3,7 +3,7 @@ class ApplicationController < ActionController::Base
   # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
   around_action :set_time_zone
-  before_action :ensure_site
+  before_action :ensure_site, except: [:health]
 
   rescue_from Authie::Session::ValidityError, :with => :auth_session_error
 

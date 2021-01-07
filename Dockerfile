@@ -1,27 +1,17 @@
-# see: https://docs.docker.com/compose/rails/
-
 FROM ruby:2.5
-
-RUN apt-get update -qq && apt-get install -y nodejs
-
-WORKDIR /usr/src/app
-
-COPY Gemfile /usr/src/app/Gemfile
-COPY Gemfile.lock /usr/src/app/Gemfile.lock
+RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
+WORKDIR /app
+COPY Gemfile /app/Gemfile
+COPY Gemfile.lock /app/Gemfile.lock
 RUN bundle install
-
-COPY . /usr/src/app
+COPY . /app
 
 # Add a script to be executed every time the container starts.
-COPY docker-entrypoint.sh /usr/bin/
-RUN chmod +x /usr/bin/docker-entrypoint.sh
+COPY docker_entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/docker_entrypoint.sh
+ENTRYPOINT ["docker_entrypoint.sh"]
 
-COPY dockercompose-entrypoint.sh /usr/bin/
-RUN chmod +x /usr/bin/dockercompose-entrypoint.sh
-
-ENTRYPOINT ["docker-entrypoint.sh"]
 EXPOSE 8787
 
 # Start the main process.
-# CMD ["rails", "server", "-b", "0.0.0.0"]
-CMD ["bundle exec", "puma", "-C", "config/puma.rb"]
+CMD ["puma", "-C", "config/puma.rb"]
