@@ -1,28 +1,27 @@
-FROM ruby
-MAINTAINER Tim Perry <pimterry@gmail.com>
+# see: https://docs.docker.com/compose/rails/
 
-USER root
+FROM ruby:2.5
 
-RUN apt-get update && \
-    export DEBIAN_FRONTEND=noninteractive && \
-    # Set password to temp-password - reset to random password on startup
-    echo mysql-server mysql-server/root_password password temp-password | debconf-set-selections && \
-    echo mysql-server mysql-server/root_password_again password temp-password | debconf-set-selections && \   
-    # Instal MySQL for data, node as the JS engine for uglifier
-    apt-get install -y mysql-server nodejs
-    
-COPY . /opt/staytus
+RUN apt-get update -qq && apt-get install -y nodejs
 
-RUN cd /opt/staytus && \
-    bundle install --deployment --without development:test
+WORKDIR /usr/src/app
 
-ENTRYPOINT /opt/staytus/docker-start.sh
+COPY Gemfile /usr/src/app/Gemfile
+COPY Gemfile.lock /usr/src/app/Gemfile.lock
+RUN bundle install
 
-# Persists all DB state
-VOLUME /var/lib/mysql
+COPY . /usr/src/app
 
-# Persists copies of other relevant files (DB config, custom themes). Contents of this are copied 
-# to the relevant places each time the container is started
-VOLUME /opt/staytus/persisted
+# Add a script to be executed every time the container starts.
+COPY docker-entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/docker-entrypoint.sh
 
-EXPOSE 5000
+COPY dockercompose-entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/dockercompose-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+EXPOSE 8787
+
+# Start the main process.
+# CMD ["rails", "server", "-b", "0.0.0.0"]
+CMD ["bundle exec", "puma", "-C", "config/puma.rb"]
